@@ -2,10 +2,33 @@
   "name": "rail-radar",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "pnpm --filter @rail-radar/web dev",
     "build": "pnpm --filter @rail-radar/web build",
-    "lint": "pnpm --filter @rail-radar/web lint",
-    "preview": "pnpm --filter @rail-radar/web preview"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "preview": "pnpm --filter @rail-radar/web preview",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,html,json,md,yaml,yml}": "prettier --write"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10"
   }
 }
