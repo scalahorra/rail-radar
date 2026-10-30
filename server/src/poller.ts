@@ -1,9 +1,10 @@
 import type { TrainStore } from './store/trainStore.js'
 import { config } from './config.js'
+import type { StaticIndex } from './gtfs/staticIndex.js'
 import { fetchCercaniasFeed } from './sources/cercanias/fetch.js'
 import { normalizeCercaniasPositions } from './sources/cercanias/normalize.js'
 
-export function startPoller(store: TrainStore): () => void {
+export function startPoller(store: TrainStore, staticIndex: StaticIndex): () => void {
   let running = false
 
   const poll = async (): Promise<void> => {
@@ -17,7 +18,7 @@ export function startPoller(store: TrainStore): () => void {
         fetchCercaniasFeed(config.cercaniasPositionsUrl),
         fetchCercaniasFeed(config.cercaniasTripUpdatesUrl),
       ])
-      store.replaceTrains(normalizeCercaniasPositions(positions, updates))
+      store.replaceTrains(normalizeCercaniasPositions(positions, updates, staticIndex))
       store.markSourceSuccess()
     } catch (error) {
       store.markSourceFailure(error)
@@ -32,4 +33,4 @@ export function startPoller(store: TrainStore): () => void {
   return () => clearInterval(timer)
 }
 
-// TODO(phase 6): Poll the alerts and long-distance feeds.
+// TODO(phase 7): Poll the alerts and long-distance feeds.

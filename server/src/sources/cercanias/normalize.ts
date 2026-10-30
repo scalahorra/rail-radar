@@ -1,4 +1,5 @@
 import type { Train } from '@rail-radar/shared/train'
+import type { StaticIndex } from '../../gtfs/staticIndex.js'
 import { realtimeFeedSchema } from '../realtimeSchema.js'
 
 type RealtimeEntity = ReturnType<typeof realtimeFeedSchema.parse>['entity'][number]
@@ -40,6 +41,7 @@ function getTrainNumber(tripId: string, vehicleId: string | undefined): string {
 export function normalizeCercaniasPositions(
   positionsPayload: unknown,
   tripUpdatesPayload: unknown,
+  staticIndex: StaticIndex,
   now = new Date(),
 ): Train[] {
   const positions = realtimeFeedSchema.parse(positionsPayload)
@@ -67,7 +69,9 @@ export function normalizeCercaniasPositions(
       continue
     }
 
-    const line = lineFromId(vehicle.trip?.routeId) ?? lineFromId(tripId) ?? 'Cercanías'
+    const route = staticIndex.getTrip(tripId)
+    const line =
+      route?.line ?? lineFromId(vehicle.trip?.routeId) ?? lineFromId(tripId) ?? 'Cercanías'
     if (isReplacementBus(entity, line)) {
       continue
     }
@@ -83,6 +87,8 @@ export function normalizeCercaniasPositions(
       lon: position.longitude,
       updatedAt: epochToIso(timestamp, now),
       ...(position.bearing !== undefined ? { bearing: position.bearing } : {}),
+      ...(route?.destination ? { destination: route.destination } : {}),
+      ...(route?.color ? { color: route.color } : {}),
     }
 
     trains.set(train.id, train)
@@ -91,4 +97,4 @@ export function normalizeCercaniasPositions(
   return [...trains.values()]
 }
 
-// TODO(phase 6): Enrich line metadata from static GTFS and normalize trip delays and alerts.
+// TODO(phase 7): Normalize trip-update delays and alerts.

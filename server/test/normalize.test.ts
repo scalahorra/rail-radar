@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { StaticIndex } from '../src/gtfs/staticIndex.js'
 import { normalizeCercaniasPositions } from '../src/sources/cercanias/normalize.js'
 
 async function readSample(filename: string): Promise<unknown> {
@@ -15,6 +16,7 @@ describe('Renfe feed normalizers', () => {
     const trains = normalizeCercaniasPositions(
       positions,
       updates,
+      StaticIndex.empty(),
       new Date('2026-10-30T12:00:00.000Z'),
     )
 
@@ -51,10 +53,38 @@ describe('Renfe feed normalizers', () => {
       ],
     }
 
-    expect(normalizeCercaniasPositions(positions, updates)).toEqual([])
+    expect(normalizeCercaniasPositions(positions, updates, StaticIndex.empty())).toEqual([])
+  })
+
+  it('enriches trains with line, destination, and color from static GTFS', () => {
+    const index = StaticIndex.fromCsv(
+      'route_id,route_short_name,route_long_name,route_color\n10T0001C1,C 1,Line 1,073588',
+      'route_id,service_id,trip_id,trip_headsign\n10T0001C1,weekday,10T0001C1,Airport T4',
+    )
+    const positions = {
+      entity: [
+        {
+          vehicle: {
+            trip: { tripId: '10T0001C1' },
+            position: { latitude: 40.4, longitude: -3.7 },
+            vehicle: { id: '12345' },
+          },
+        },
+      ],
+    }
+
+    const trains = normalizeCercaniasPositions(positions, { entity: [] }, index)
+
+    expect(trains[0]).toMatchObject({
+      line: 'C1',
+      destination: 'Airport T4',
+      color: '#073588',
+    })
   })
 
   it('rejects a feed that does not match the GTFS-Realtime shape', () => {
-    expect(() => normalizeCercaniasPositions({ entity: 'not-an-array' }, { entity: [] })).toThrow()
+    expect(() =>
+      normalizeCercaniasPositions({ entity: 'not-an-array' }, { entity: [] }, StaticIndex.empty()),
+    ).toThrow()
   })
 })

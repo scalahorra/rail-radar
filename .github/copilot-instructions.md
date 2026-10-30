@@ -10,7 +10,7 @@
 ## Fuentes
 
 - Cercanías oficial, GTFS-Realtime protobuf y sin clave: `https://gtfsrt.renfe.com/vehicle_positions.pb`, `trip_updates.pb` y `alerts.pb`.
-- GTFS estático de `data.renfe.com` (CSV `routes.txt`, `trips.txt`, `stops.txt`) para asociar `trip_id` con línea, destino y color. No versionar el ZIP ni sus datos derivados descargables.
+- GTFS estático oficial (CSV `routes.txt` y `trips.txt`) para asociar `trip_id` con línea, destino y color. El índice se carga al arrancar; no versionar el ZIP ni los CSV descargados.
 - AV/LD/MD: feed JSON oficial `https://gtfsrt.renfe.com/vehicle_positions_LD.json`, publicado en `data.renfe.com`; validar siempre con zod porque el formato puede cambiar.
 
 ## Contrato y API
