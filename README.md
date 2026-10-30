@@ -43,3 +43,15 @@ Con el servidor en marcha, abre estas direcciones en el navegador:
 El feed LD usa el JSON del visor de Renfe. Puedes sobrescribir su URL con `LD_POSITIONS_URL`; cada consulta añade un parámetro `v` para evitar respuestas cacheadas.
 
 También puedes ejecutar `pnpm test:server` para probar la normalización con los samples y la retención de la caché.
+
+## Despliegue
+
+Despliega como un servicio web con un proceso Node persistente (no como función serverless). El mismo proceso de Fastify sirve `web/dist` y `/api/*`, así que frontend y API comparten origen y no requieren CORS.
+
+Configura el directorio raíz del servicio en la raíz del monorepo y usa:
+
+- Comando de build: `pnpm install --frozen-lockfile && pnpm build:prod && pnpm gtfs`
+- Comando de inicio: `pnpm start:server`
+- Puerto: usa la variable `PORT` que proporcione la plataforma; el servidor escucha en `0.0.0.0`.
+
+Mantén la instancia encendida para que el poller actualice la caché cada 20 segundos. Si la plataforma separa build y runtime o no conserva archivos generados, asegúrate de incluir `web/dist` en el artefacto y vuelve a ejecutar `pnpm gtfs` al desplegar para incluir el índice estático.
