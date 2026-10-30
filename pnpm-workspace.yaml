@@ -2,3 +2,6 @@ packages:
   - web
   - server
   - shared
+allowBuilds:
+  esbuild: true
+  protobufjs: true

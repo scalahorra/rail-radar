@@ -11,6 +11,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "pnpm --filter @rail-radar/web preview",
+    "dev:server": "pnpm --filter @rail-radar/server dev",
+    "build:server": "pnpm --filter @rail-radar/server build",
+    "samples": "pnpm --filter @rail-radar/server samples",
+    "test:server": "pnpm --filter @rail-radar/server test",
+    "typecheck:server": "pnpm --filter @rail-radar/server typecheck",
     "prepare": "husky"
   },
   "lint-staged": {

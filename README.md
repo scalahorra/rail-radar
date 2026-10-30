@@ -1,16 +1,34 @@
-# React + Vite
+# Rail Radar
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Backend mínimo para consultar posiciones de trenes de Cercanías. Cada 20 segundos descarga las posiciones y actualizaciones de viaje, normaliza los trenes y guarda el resultado en memoria durante un máximo de 60 segundos. Las rutas HTTP solo leen esa caché.
 
-Currently, two official plugins are available:
+## Requisitos e inicio
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Necesitas Node.js 22 o superior y pnpm. Desde la raíz del repositorio:
 
-## React Compiler
+```sh
+pnpm install
+pnpm samples
+pnpm dev:server
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`pnpm samples` descarga los tres feeds GTFS-Realtime de Cercanías y guarda sus muestras JSON en `docs/samples/`. No es necesario para arrancar el servidor; se usa como referencia y en los tests.
 
-## Expanding the Oxlint configuration
+## Archivos principales
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- `server/src/index.ts`: inicia Fastify y el poller.
+- `server/src/app.ts`: configura las rutas HTTP.
+- `server/src/sources/cercanias/fetch.ts`: descarga y decodifica protobuf.
+- `server/src/sources/cercanias/normalize.ts`: convierte los feeds a trenes.
+- `server/src/poller.ts`: actualiza la caché cada 20 segundos.
+- `server/src/store/trainStore.ts`: conserva trenes y estado de salud en memoria.
+- `shared/train.ts`: tipos compartidos por backend y web.
+
+## Probar la API
+
+Con el servidor en marcha, abre estas direcciones en el navegador:
+
+- `http://localhost:3000/api/health`: indica si Cercanías se está actualizando correctamente y muestra el último error si lo hay.
+- `http://localhost:3000/api/trains`: devuelve los trenes disponibles como GeoJSON. Puede tardar hasta 10 segundos en llenarse tras iniciar el servidor.
+
+También puedes ejecutar `pnpm test:server` para probar la normalización con los samples y la retención de la caché.
