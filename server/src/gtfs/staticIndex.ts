@@ -31,6 +31,7 @@ function normalizeColor(value: string | undefined): string | undefined {
 
 export class StaticIndex {
   private readonly trips = new Map<string, RouteMetadata>()
+  private readonly routes = new Map<string, RouteMetadata>()
 
   static empty(): StaticIndex {
     return new StaticIndex()
@@ -38,8 +39,6 @@ export class StaticIndex {
 
   static fromCsv(routesCsv: string, tripsCsv: string): StaticIndex {
     const index = new StaticIndex()
-    const routes = new Map<string, RouteMetadata>()
-
     for (const row of parseCsv(routesCsv)) {
       const routeId = clean(row.route_id)
       if (!routeId) {
@@ -50,17 +49,18 @@ export class StaticIndex {
       const longName = clean(row.route_long_name)
       const destination = clean(longName?.split(/\s+-\s*/).at(-1))
       const color = normalizeColor(row.route_color)
-      routes.set(routeId, {
+      const metadata: RouteMetadata = {
         line: shortName?.replace(/\s+/g, '') ?? longName ?? routeId,
         ...(destination ? { destination } : {}),
         ...(color ? { color } : {}),
-      })
+      }
+      index.routes.set(routeId, metadata)
     }
 
     for (const row of parseCsv(tripsCsv)) {
       const tripId = clean(row.trip_id)
       const routeId = clean(row.route_id)
-      const route = routeId ? routes.get(routeId) : undefined
+      const route = routeId ? index.routes.get(routeId) : undefined
       if (!tripId || !route) {
         continue
       }
@@ -77,6 +77,10 @@ export class StaticIndex {
 
   getTrip(tripId: string): RouteMetadata | undefined {
     return this.trips.get(tripId)
+  }
+
+  getRoute(routeId: string): RouteMetadata | undefined {
+    return this.routes.get(routeId)
   }
 }
 

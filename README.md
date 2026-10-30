@@ -1,6 +1,6 @@
 # Rail Radar
 
-Backend mínimo para consultar posiciones de trenes de Cercanías. Cada 20 segundos descarga las posiciones y actualizaciones de viaje, normaliza los trenes y guarda el resultado en memoria durante un máximo de 60 segundos. Las rutas HTTP solo leen esa caché.
+Backend para consultar trenes e incidencias de Cercanías. Cada 20 segundos descarga posiciones, actualizaciones de viaje y alertas; normaliza los datos y guarda trenes/avisos en memoria. Las posiciones ausentes de un lote se conservan hasta 60 segundos. Las rutas HTTP solo leen esa caché.
 
 ## Requisitos e inicio
 
@@ -21,7 +21,8 @@ pnpm dev:server
 - `server/src/index.ts`: inicia Fastify y el poller.
 - `server/src/app.ts`: configura las rutas HTTP.
 - `server/src/sources/cercanias/fetch.ts`: descarga y decodifica protobuf.
-- `server/src/sources/cercanias/normalize.ts`: convierte los feeds a trenes.
+- `server/src/sources/cercanias/normalize.ts`: convierte posiciones y retrasos a trenes, y alertas a incidencias.
+- `server/src/routes/alerts.ts`: sirve las incidencias guardadas en memoria.
 - `server/src/gtfs/staticIndex.ts`: relaciona cada viaje con línea, destino y color.
 - `server/scripts/download-gtfs.ts`: descarga y extrae los archivos GTFS necesarios.
 - `server/src/poller.ts`: actualiza la caché cada 20 segundos.
@@ -34,5 +35,6 @@ Con el servidor en marcha, abre estas direcciones en el navegador:
 
 - `http://localhost:3000/api/health`: indica si Cercanías se está actualizando correctamente y muestra el último error si lo hay.
 - `http://localhost:3000/api/trains`: devuelve los trenes disponibles como GeoJSON. Puede tardar hasta 10 segundos en llenarse tras iniciar el servidor.
+- `http://localhost:3000/api/alerts`: devuelve incidencias de Cercanías con texto, líneas afectadas y periodo activo.
 
 También puedes ejecutar `pnpm test:server` para probar la normalización con los samples y la retención de la caché.

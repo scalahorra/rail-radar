@@ -17,7 +17,7 @@
 
 - `Train`: `id`, `service` (`cercanias` | `ld`), `line`, `number`, `lat`, `lon`, `bearing?`, `delayMin?`, `destination?`, `color?`, `updatedAt` (ISO 8601 UTC).
 - `GET /api/trains` devuelve GeoJSON FeatureCollection con Point `[lon, lat]` y el objeto `Train` en `properties`.
-- `GET /api/alerts` devuelve incidencias de Cercanías. `GET /api/health` informa por fuente última actualización correcta, último error y estado.
+- `GET /api/alerts` devuelve incidencias de Cercanías. `GET /api/health` informa del estado de la actualización de trenes; un error aislado al consultar alertas conserva la última lista válida.
 
 ## Stack y convenciones
 

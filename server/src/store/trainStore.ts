@@ -1,4 +1,4 @@
-import type { HealthResponse, SourceHealth, Train } from '@rail-radar/shared/train'
+import type { HealthResponse, SourceHealth, Train, TrainAlert } from '@rail-radar/shared/train'
 
 type StoredTrain = {
   train: Train
@@ -7,6 +7,7 @@ type StoredTrain = {
 
 export class TrainStore {
   private readonly trains = new Map<string, StoredTrain>()
+  private alerts: TrainAlert[] = []
   private source: SourceHealth = { status: 'down' }
 
   constructor(private readonly retentionMs = 60_000) {}
@@ -14,6 +15,14 @@ export class TrainStore {
   getTrains(now = Date.now()): Train[] {
     this.pruneExpiredTrains(now)
     return [...this.trains.values()].map(({ train }) => train)
+  }
+
+  getAlerts(): TrainAlert[] {
+    return this.alerts
+  }
+
+  replaceAlerts(alerts: TrainAlert[]): void {
+    this.alerts = alerts
   }
 
   replaceTrains(trains: Train[], now = Date.now()): void {

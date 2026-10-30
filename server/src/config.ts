@@ -20,4 +20,5 @@ export const config = {
     process.env.CERCANIAS_POSITIONS_URL ?? 'https://gtfsrt.renfe.com/vehicle_positions.pb',
   cercaniasTripUpdatesUrl:
     process.env.CERCANIAS_TRIP_UPDATES_URL ?? 'https://gtfsrt.renfe.com/trip_updates.pb',
+  cercaniasAlertsUrl: process.env.CERCANIAS_ALERTS_URL ?? 'https://gtfsrt.renfe.com/alerts.pb',
 }

@@ -16,6 +16,7 @@ describe('API routes', () => {
       updatedAt: '2026-10-30T12:00:00.000Z',
     }
     store.replaceTrains([train])
+    store.replaceAlerts([{ id: 'alert-1', text: 'Incidencia', lines: ['C1'] }])
     store.markSourceSuccess()
     const app = await createApp(store)
 
@@ -34,6 +35,10 @@ describe('API routes', () => {
 
     const healthResponse = await app.inject('/api/health')
     expect(healthResponse.json()).toMatchObject({ ok: true, source: { status: 'ok' } })
+
+    const alertsResponse = await app.inject('/api/alerts')
+    expect(alertsResponse.statusCode).toBe(200)
+    expect(alertsResponse.json()).toEqual([{ id: 'alert-1', text: 'Incidencia', lines: ['C1'] }])
 
     await app.close()
   })

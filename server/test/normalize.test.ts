@@ -2,7 +2,10 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { StaticIndex } from '../src/gtfs/staticIndex.js'
-import { normalizeCercaniasPositions } from '../src/sources/cercanias/normalize.js'
+import {
+  normalizeCercaniasAlerts,
+  normalizeCercaniasPositions,
+} from '../src/sources/cercanias/normalize.js'
 
 async function readSample(filename: string): Promise<unknown> {
   const contents = await readFile(resolve(process.cwd(), '../docs/samples', filename), 'utf8')
@@ -23,7 +26,62 @@ describe('Renfe feed normalizers', () => {
     expect(trains.length).toBeGreaterThan(0)
     expect(trains.every((train) => train.lat !== 0 || train.lon !== 0)).toBe(true)
     expect(trains.every((train) => train.id.startsWith('cercanias:'))).toBe(true)
-    expect(trains[0]).not.toHaveProperty('delayMin')
+    expect(trains.some((train) => train.delayMin !== undefined)).toBe(true)
+  })
+
+  it('converts delay seconds to rounded minutes, preferring the trip delay', () => {
+    const positions = {
+      entity: [
+        {
+          vehicle: {
+            trip: { tripId: '10T0001C1' },
+            position: { latitude: 40.4, longitude: -3.7 },
+          },
+        },
+      ],
+    }
+    const updates = {
+      entity: [
+        {
+          tripUpdate: {
+            trip: { tripId: '10T0001C1' },
+            delay: 90,
+            stopTimeUpdate: [{ arrival: { delay: 30 } }],
+          },
+        },
+      ],
+    }
+
+    const trains = normalizeCercaniasPositions(positions, updates, StaticIndex.empty())
+
+    expect(trains[0]?.delayMin).toBe(2)
+  })
+
+  it('uses the first stop delay when the trip has no delay', () => {
+    const positions = {
+      entity: [
+        {
+          vehicle: {
+            trip: { tripId: '10T0001C1' },
+            position: { latitude: 40.4, longitude: -3.7 },
+          },
+        },
+      ],
+    }
+    const updates = {
+      entity: [
+        {
+          tripUpdate: {
+            trip: { tripId: '10T0001C1' },
+            stopTimeUpdate: [{ arrival: { delay: 30 } }],
+          },
+        },
+      ],
+    }
+
+    const trains = normalizeCercaniasPositions(positions, updates, StaticIndex.empty())
+
+    expect(trains[0]?.delayMin).toBe(1)
   })
 
   it('ignores canceled trips and empty coordinates', () => {
@@ -80,6 +138,24 @@ describe('Renfe feed normalizers', () => {
       destination: 'Airport T4',
       color: '#073588',
     })
+  })
+
+  it('normalizes alerts from the real sample with Spanish text and affected lines', async () => {
+    const sample = await readSample('alerts.sample.json')
+    const index = StaticIndex.fromCsv(
+      'route_id,route_short_name,route_long_name,route_color\n10T0011C4,C4,Line C4,073588',
+      'route_id,service_id,trip_id,trip_headsign\n10T0011C4,weekday,trip-1,Central',
+    )
+
+    const alerts = normalizeCercaniasAlerts(sample, index, new Date('2026-10-30T12:00:00.000Z'))
+
+    expect(alerts.length).toBeGreaterThan(0)
+    expect(alerts[0]).toMatchObject({
+      id: expect.stringMatching(/^AVISO_/),
+      lines: expect.arrayContaining(['C4']),
+      startsAt: expect.any(String),
+    })
+    expect(alerts[0]?.text).toContain('#')
   })
 
   it('rejects a feed that does not match the GTFS-Realtime shape', () => {
