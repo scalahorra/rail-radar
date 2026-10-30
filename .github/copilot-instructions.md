@@ -4,7 +4,8 @@
 
 - Web React + Vite para mostrar trenes de Renfe en tiempo real sobre un mapa de España.
 - `/server` es Node 22 + TypeScript + Fastify. Un poller consulta las fuentes cada 20 s, normaliza y guarda los datos en memoria; las rutas HTTP solo leen esa caché.
-- `/web` consume únicamente `/api/*`. Los tipos de dominio compartidos viven en `/shared/train.ts`.
+- `/web` es React 19 + Vite + TypeScript y consume únicamente `/api/*`; en desarrollo Vite proxya a `http://localhost:3000`. Las instrucciones específicas están en `.github/instructions/web.instructions.md`.
+- Los tipos de dominio compartidos viven en `/shared/train.ts`. `GET /api/trains` devuelve GeoJSON FeatureCollection con `[lon, lat]` y propiedades `Train`; `service` es `cercanias | ld`, y puede incluir `bearing`, `delayMin`, `destination` y `color`. `GET /api/health` devuelve `{ ok, sources }` con estado independiente de Cercanías y LD.
 - `docs/samples/` contiene respuestas reales de Renfe en JSON y es la fuente de verdad para tipos, esquemas y tests. No deducir payloads: si faltan samples, implementar primero el script que los descarga.
 
 ## Fuentes

@@ -3,6 +3,7 @@ import eslintConfigPrettier from 'eslint-config-prettier'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
 export default [
   {
@@ -25,8 +26,9 @@ export default [
     },
     rules: js.configs.recommended.rules,
   },
+  ...tseslint.configs.recommended,
   {
-    files: ['web/src/**/*.{js,jsx}'],
+    files: ['web/src/**/*.{js,jsx,ts,tsx}'],
     plugins: {
       react,
       'react-hooks': reactHooks,
