@@ -1,4 +1,10 @@
-import type { HealthResponse, SourceHealth, Train, TrainAlert } from '@rail-radar/shared/train'
+import type {
+  HealthResponse,
+  SourceHealth,
+  SourceName,
+  Train,
+  TrainAlert,
+} from '@rail-radar/shared/train'
 
 type StoredTrain = {
   train: Train
@@ -8,7 +14,10 @@ type StoredTrain = {
 export class TrainStore {
   private readonly trains = new Map<string, StoredTrain>()
   private alerts: TrainAlert[] = []
-  private source: SourceHealth = { status: 'down' }
+  private readonly sources = new Map<SourceName, SourceHealth>([
+    ['cercanias', { status: 'down' }],
+    ['ld', { status: 'down' }],
+  ])
 
   constructor(private readonly retentionMs = 60_000) {}
 
@@ -25,7 +34,7 @@ export class TrainStore {
     this.alerts = alerts
   }
 
-  replaceTrains(trains: Train[], now = Date.now()): void {
+  replaceServiceTrains(service: Train['service'], trains: Train[], now = Date.now()): void {
     const incomingIds = new Set<string>()
     for (const train of trains) {
       incomingIds.add(train.id)
@@ -33,26 +42,33 @@ export class TrainStore {
     }
 
     for (const [id, stored] of this.trains) {
-      if (!incomingIds.has(id) && now - stored.lastSeenAt > this.retentionMs) {
+      if (
+        stored.train.service === service &&
+        !incomingIds.has(id) &&
+        now - stored.lastSeenAt > this.retentionMs
+      ) {
         this.trains.delete(id)
       }
     }
   }
 
-  markSourceSuccess(now = new Date()): void {
-    this.source = { status: 'ok', lastSuccessAt: now.toISOString() }
+  markSourceSuccess(source: SourceName, now = new Date()): void {
+    this.sources.set(source, { status: 'ok', lastSuccessAt: now.toISOString() })
   }
 
-  markSourceFailure(error: unknown): void {
-    this.source = {
+  markSourceFailure(source: SourceName, error: unknown): void {
+    const previous = this.sources.get(source)
+    this.sources.set(source, {
       status: 'down',
-      ...(this.source.lastSuccessAt ? { lastSuccessAt: this.source.lastSuccessAt } : {}),
+      ...(previous?.lastSuccessAt ? { lastSuccessAt: previous.lastSuccessAt } : {}),
       lastError: error instanceof Error ? error.message : String(error),
-    }
+    })
   }
 
   getHealth(): HealthResponse {
-    return { ok: this.source.status === 'ok', source: this.source }
+    const sources = Object.fromEntries(this.sources) as Record<SourceName, SourceHealth>
+    const ok = [...this.sources.values()].every((source) => source.status === 'ok')
+    return { ok, sources }
   }
 
   private pruneExpiredTrains(now: number): void {

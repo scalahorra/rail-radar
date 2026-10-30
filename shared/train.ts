@@ -1,6 +1,6 @@
 export type Train = {
   id: string
-  service: 'cercanias'
+  service: 'cercanias' | 'ld'
   line: string
   number: string
   lat: number
@@ -40,7 +40,9 @@ export type SourceHealth = {
   lastError?: string
 }
 
+export type SourceName = 'cercanias' | 'ld'
+
 export type HealthResponse = {
   ok: boolean
-  source: SourceHealth
+  sources: Record<SourceName, SourceHealth>
 }

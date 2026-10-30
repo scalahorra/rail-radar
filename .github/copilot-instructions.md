@@ -11,13 +11,13 @@
 
 - Cercanías oficial, GTFS-Realtime protobuf y sin clave: `https://gtfsrt.renfe.com/vehicle_positions.pb`, `trip_updates.pb` y `alerts.pb`.
 - GTFS estático oficial (CSV `routes.txt` y `trips.txt`) para asociar `trip_id` con línea, destino y color. El índice se carga al arrancar; no versionar el ZIP ni los CSV descargados.
-- AV/LD/MD: feed JSON oficial `https://gtfsrt.renfe.com/vehicle_positions_LD.json`, publicado en `data.renfe.com`; validar siempre con zod porque el formato puede cambiar.
+- Flota LD: JSON del visor `https://tiempo-real.largorecorrido.renfe.com/renfe-visor/flotaLD.json`; usa `LD_POSITIONS_URL` para sustituirlo y añade un cache-buster `v` en cada consulta. Validar siempre con zod porque el formato puede cambiar.
 
 ## Contrato y API
 
 - `Train`: `id`, `service` (`cercanias` | `ld`), `line`, `number`, `lat`, `lon`, `bearing?`, `delayMin?`, `destination?`, `color?`, `updatedAt` (ISO 8601 UTC).
 - `GET /api/trains` devuelve GeoJSON FeatureCollection con Point `[lon, lat]` y el objeto `Train` en `properties`.
-- `GET /api/alerts` devuelve incidencias de Cercanías. `GET /api/health` informa del estado de la actualización de trenes; un error aislado al consultar alertas conserva la última lista válida.
+- `GET /api/alerts` devuelve incidencias de Cercanías. `GET /api/health` informa estado por fuente para Cercanías y LD; un error de validación LD marca LD como caída sin detener Cercanías, y un error aislado de alertas conserva la última lista válida.
 
 ## Stack y convenciones
 

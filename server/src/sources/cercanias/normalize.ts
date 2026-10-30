@@ -172,5 +172,3 @@ export function normalizeCercaniasAlerts(
 
   return alerts
 }
-
-// TODO(phase 8): Normalize Larga Distancia feeds.
